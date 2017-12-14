@@ -13,7 +13,7 @@ setup(name='fun-expr',
       description='Create a sympy function from an expression',
       author='wolfgang-302',
       author_email='11839527+wolfgang-302@users.noreply.github.com',
-      packages=['fun-expr'],
+      packages=['fun_expr'],
       classifiers=[
           'License :: OSI Approved :: MIT License',
           'Operating System :: OS Independent',
