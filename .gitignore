@@ -1,3 +1,4 @@
 .DS_Store
 docs/.ipynb_checkpoints/
 docs/__pycache__/
+tests/__pycache__/
