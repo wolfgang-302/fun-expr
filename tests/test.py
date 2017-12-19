@@ -74,3 +74,8 @@ class Test_FE(unittest.TestCase):
     def test_composition(self):
         self.assertEqual(f(sin(x)).diff(x), a*cos(x))
         self.assertEqual(sin(f(x)).diff(x), a*cos(a*x+b))
+        
+    def test_subs(self):
+        assert h.subs(a,x) == FE((x,y,z), x**2*y*z+b)
+        self.assertRaises(ValueError, lambda: h.subs(x,a))
+        self.assertRaises(ValueError, lambda: h.subs(x,y))

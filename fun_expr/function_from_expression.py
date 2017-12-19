@@ -85,7 +85,30 @@ class Function_from_Expression(Lambda):
         obj.nargs = FiniteSet(len(v))
         return obj
 
+    def subs(self, *arg, **kwargs):
+        """
+        Substitution should not be allowed on variables.
+        So the result of a subst is testet, if
+        variables have changed. In this case, a 
+        ValueError is thrown.
         
+        Example:
+        >>> from sympy import *
+        >>> from fun_expr import Function_as_Expression as FE
+        >>> a,x,y = symbols('a,x,y')
+        >>> f = FE((x,y), a*x*y**2)
+        >>> f.subs(a,x) # returns x**2*y**2
+        >>> f.subs(x,y) # throws ValueError since x is a variable of f
+        >>> f.subs(x,a) # throws ValueError since x is a variable of f
+        """
+        obj = super().subs(*arg, **kwargs)
+        if False in [u==v for u,v in zip(self.variables,obj.variables)]:
+            raise ValueError(
+                    "Substitution of variables is not valid: {}".format(arg) 
+                    )
+        return obj
+        
+    
     def diff(self, *symbols, **assumptions):
         """
         Differentiate function w.r.t. symbols.
