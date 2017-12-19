@@ -8,6 +8,10 @@ To install pip can be used:
 
 `pip install git+https://github.com/wolfgang-302/fun-expr.git`
 
+To upgrade to the latest version use:
+
+`pip install --upgrade git+https://github.com/wolfgang-302/fun-expr.git`
+
 Then, to use the class `Function_from_Expression` import
 
 ```
