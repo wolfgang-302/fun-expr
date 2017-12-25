@@ -28,6 +28,7 @@ SOFTWARE.
 """
 
 from sympy import lambdify, Lambda, Expr, Tuple, sympify, FiniteSet
+from sympy.utilities.iterables import iterable
 
 #import sympy
 
@@ -76,7 +77,7 @@ class Function_from_Expression(Lambda):
         """
         
         # see source of Lambda for the next lines
-        from sympy.utilities.iterables import iterable
+        #from sympy.utilities.iterables import iterable
         v = list(variables) if iterable(variables) else [variables]
         for i in v:
             if not getattr(i, 'is_Symbol', False):
@@ -185,7 +186,7 @@ class Function_from_Expression(Lambda):
         >>> lx = np.linspace(0,3)
         >>> lf = f.lambdify()
         >>> plt.plot(lx,lf(lx))
-        """
+        """         
         return lambdify(self.variables, self.expr, *args, **kwargs)    
 
     def lambdified(self, *apply_to, **kwargs):
@@ -215,5 +216,21 @@ class Function_from_Expression(Lambda):
         >>> lx = np.linspace(0,3)
         >>> [plt.plot(lx,g.lambdied(lx,a) for a in [0,1,3])
         """
+
+        # if self.var has only one variable and
+        # self.expr does not depend on self.var,
+        # i.e. self.expr.is_constant(self.var)
+        # then lambdify() fails.
+        # This case must be tested and treated separately:
+        # if apply_to has length 1 and its first element
+        # is iterable, a numpy array is returned.
+        if 1 in self.nargs\
+        and self.expr.is_constant(*self.variables)\
+        and len(apply_to) == 1\
+        and iterable(*apply_to):
+            import numpy as np
+            return float(self.expr)*np.ones(np.shape(*apply_to))
+
+        
         lambdified = lambdify(self.variables, self.expr, **kwargs)
         return lambdified(*apply_to)
