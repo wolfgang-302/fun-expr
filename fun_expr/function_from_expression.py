@@ -29,11 +29,7 @@ SOFTWARE.
 
 from sympy import lambdify, Lambda, Expr, Tuple, sympify, FiniteSet, latex
 from sympy.utilities.iterables import iterable
-
-
-#import sympy
-
-#from IPython.display import display_latex
+from IPython.display import Math
 
 
 class Function_from_Expression(Lambda):
@@ -67,7 +63,7 @@ class Function_from_Expression(Lambda):
     2*a + 1
     """
     
-    def __new__(cls, variables, expr):
+    def __new__(cls, variables, expr, name=None):
         """
         Create the body of the class.
         
@@ -85,6 +81,7 @@ class Function_from_Expression(Lambda):
                 raise TypeError('variable is not a symbol: %s' % i)
         obj = Expr.__new__(cls, Tuple(*v), sympify(expr))
         obj.nargs = FiniteSet(len(v))
+        obj.name = name
         return obj
 
     def subs(self, *args, **kwargs):
@@ -93,9 +90,10 @@ class Function_from_Expression(Lambda):
         substituted into the expression of this function
         """
         return Function_from_Expression(self.variables, 
-                                        self.expr.subs(*args, **kwargs))        
+                                        self.expr.subs(*args, **kwargs),
+                                        self.name)        
     
-    def diff(self, *symbols, **assumptions):
+    def diff(self, *symbols, name=None, **assumptions):
         """
         Differentiate function w.r.t. symbols.
         
@@ -117,10 +115,10 @@ class Function_from_Expression(Lambda):
         as_function = assumptions.pop('as_function',True)
         expr = self.expr.diff(*symbols, **assumptions)
         if as_function:
-            return Function_from_Expression(self.variables, expr)
+            return Function_from_Expression(self.variables, expr,name)
         return expr
         
-    def integrate(self, *args, **kwargs):
+    def integrate(self, *args, name=None, **kwargs):
         """
         integrate returns the result as expression
         
@@ -149,7 +147,7 @@ class Function_from_Expression(Lambda):
             free_symbols = expr.free_symbols
             new_variables = tuple(v for v in self.variables if v in free_symbols)
             if new_variables:
-                return Function_from_Expression(new_variables, expr)
+                return Function_from_Expression(new_variables, expr, name)
             else:
                 raise TypeError('no variable left to define a function')
         
@@ -220,133 +218,24 @@ class Function_from_Expression(Lambda):
         lambdified = lambdify(self.variables, self.expr, **kwargs)
         return lambdified(*apply_to)
     
+    def equation(self,name=None):
+        """return the equation if this function"""
+        
+        name = name if name else getattr(self,'name',None)
+        if not name:
+            #return self.__repr__()
+            message = f'No name has been specified for \n{self.__repr__()}'
+            raise Exception(message)
+            
+        arg_str = fr'\left({latex(*self.variables)}\right)'
+        expr_str = fr'{latex(self.expr)}'
+        
+        from IPython.display import Math
+        return Math(f'{latex(name)}{arg_str} = {expr_str}')
+
 
 class Named_Function_from_Expression(Function_from_Expression):
-    """
-    Create a named function from an expression.
-    
-    Example fo use:
-    >>> from sympy import *
-    >>> from fun_expr import (
-            Function_from_Expression as FE,
-            Named_Function_from_Expression as NFE,
-            )
-    >>> f = NFE("f", x, x**2)
-    >>> f.displ()
-    '$f(x) = x^{2}$'
-    >>> f_1 = f.diff(x,name="f'")
-    >>> f_1.displ()
-    "$f'(x) = 2 x$"
-    >>> f_1 = f.diff(x)
-    '((x) \mapsto 2\,x)'
-    >>> print(type(f_1))
-    fun_expr.function_from_expression.Function_from_Expression
-    >>> f.displ(2)
-    '$f(2) = 4$'
-    """
+    """just a convienience class """
     
     def __new__(cls, name, variables, expr):
-        obj = Function_from_Expression.__new__(cls, variables, expr)
-        obj.name = name
-        return obj
-    
-    def displ(self, *values, par="$", n=False, simplify=False, **kwargs):
-        """
-        This is a convenience function to display the equation 
-        
-          $f(x_1,x_2,...) = rhs$
-          or 
-          $$f(x_1,x_2,...) = rhs$$ # if par='$$'
-          
-        in latex-notation. 
-
-        If values == (): replace rhs by self.expr
-        instead. If values are specified, exactly one 
-        value for every variable of this function is 
-        expected.
-        
-        If n ist True, replace the rhs by rhs.n().
-        If n is an integer number replace the rhs by rhs.n(n).
-        
-        If simplify is true, simplify rhs.
-        
-        Here rhs always is the right hand side of the equation.
-        """
-        
-        # there are exactly two possibilities:
-        #    either there is no value at all, values == ()
-        #    or there are exactly len(self.variables) values.
-        #    if there are no values, set rhs to self.expr
-        #    else calculate rhs = f(*values)
-        if values is not ():
-            vals = values 
-            rhs = super().__call__(*values, **kwargs) 
-        else:
-            vals = self.variables
-            rhs = self.expr
-        
-        # n can be None, bool or int.
-        # if n is None do nothing
-        # if n is bool and n is True, replace rhs by rhs.n()
-        # if n is bool and n is False, do nothing
-        # if n is int replace rhs by rhs.n(n)
-        if n is not None:
-            if isinstance(n, bool):
-                if n:
-                    rhs = rhs.n()
-            else:
-                rhs = rhs.n(n)
-        
-        # simplify can be True or False
-        # if simplfiy ist True, the rhs is simplified
-        if simplify:
-            rhs = rhs.simplify()
-        
-        # create output as 
-        #    f(x_1,x_2,...) = rhs
-        # in latex notation
-        ret_val = par 
-        ret_val += latex(self.name)
-        ret_val += r"\left({vars}\right) = ".format(vars=','.join(latex(v) for v in vals))
-        ret_val += latex(rhs) 
-        ret_val += par
-        return ret_val
-    
-    def diff(self, *symbols, **assumptions):
-        """
-        If a name is specified, as_function is set to True.
-        In this case, a Named_Function_of_Expression is retured.
-        If no name is specified, the result depends on as_function
-        """
-        name = assumptions.pop('name',None)
-        as_function = assumptions.pop('as_function', True) or name is not None 
-        # let my parent do the hard part 
-        res = super().diff(*symbols, as_function=as_function, **assumptions)
-        if name is not None:
-            return Named_Function_from_Expression(name, res.variables, res.expr)
-        else:
-            return res
-        
-    def integrate(self, *args, **kwargs):
-        """
-        If a name is specified, as_function is set to True.
-        In this case, a Named_Function_of_Expression is returned.
-        If no name is specified, the result depends on as_function
-        """
-        name = kwargs.pop('name',None)
-        as_function = kwargs.pop('as_function', False) or name is not None
-        # let my parent do the hard part
-        res = super().integrate(*args, as_function=as_function, **kwargs)
-        if name is not None:
-            return Named_Function_from_Expression(name, res.variables, res.expr)
-        else:
-            return res
-        
-    def subs(self, *args, **kwargs):
-        """
-        return a new function with *args and **kwargs
-        substituted into the expression of this function
-        """
-        return Named_Function_from_Expression(self.name, 
-                                              self.variables, 
-                                              self.expr.subs(*args, **kwargs))    
+        return Function_from_Expression.__new__(cls, variables, expr, name=name)
