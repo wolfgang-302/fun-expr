@@ -219,11 +219,17 @@ class Function_from_Expression(Lambda):
         return lambdified(*apply_to)
     
     def equation(self,name=None):
-        """return the equation if this function"""
+        """ return the equation for this function
+            
+            The preferred way is to use `name` from
+            this function call. If no name is specified
+            then `self.name` is tried. If `self.name` is
+            not specified, an error is raised.
+        """
+
         
         name = name if name else getattr(self,'name',None)
         if not name:
-            #return self.__repr__()
             message = f'No name has been specified for \n{self.__repr__()}'
             raise Exception(message)
             
