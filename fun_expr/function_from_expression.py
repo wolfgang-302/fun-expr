@@ -227,7 +227,7 @@ class Function_from_Expression(Lambda):
             message = f'No name has been specified for \n{self.__repr__()}'
             raise Exception(message)
             
-        arg_str = fr'\left({latex(*self.variables)}\right)'
+        arg_str = fr'\left({",".join(latex(v) for v in self.variables)}\right)'
         expr_str = fr'{latex(self.expr)}'
         
         from IPython.display import Math
