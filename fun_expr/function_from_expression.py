@@ -80,9 +80,15 @@ class Function_from_Expression(Lambda):
             if not getattr(i, 'is_Symbol', False):
                 raise TypeError('variable is not a symbol: %s' % i)
         obj = Expr.__new__(cls, Tuple(*v), sympify(expr))
-        obj.nargs = FiniteSet(len(v))
         obj.name = name
         return obj
+
+        @property
+        def nargs(self):
+            from sympy.sets.sets import FiniteSet
+            return FiniteSet(len(self.signature))
+
+
 
     def subs(self, *args, **kwargs):
         """
