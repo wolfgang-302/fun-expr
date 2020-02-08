@@ -83,10 +83,10 @@ class Function_from_Expression(Lambda):
         obj.name = name
         return obj
 
-        @property
-        def nargs(self):
-            from sympy.sets.sets import FiniteSet
-            return FiniteSet(len(self.signature))
+    @property
+    def nargs(self):
+        from sympy.sets.sets import FiniteSet
+        return FiniteSet(len(self.signature))
 
 
 
