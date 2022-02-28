@@ -243,7 +243,7 @@ class Function_from_Expression(Lambda):
         expr_str = fr'{latex(self.expr)}'
         
         from IPython.display import Math
-        return Math(f'{latex(name)}{arg_str} = {expr_str}')
+        return Math(f'{name}{arg_str} = {expr_str}')
 
 
 class Named_Function_from_Expression(Function_from_Expression):
