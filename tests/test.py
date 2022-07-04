@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Mon Dec 18 14:02:06 2017
 
@@ -23,6 +22,11 @@ from sympy import (
         Tuple, 
         S,
         )
+
+import os
+import sys
+sys.path.insert(0,os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
+
 
 from fun_expr import Function_from_Expression as FE
 
@@ -77,5 +81,6 @@ class Test_FE(unittest.TestCase):
         
     def test_subs(self):
         assert h.subs(a,x) == FE((x,y,z), x**2*y*z+b)
-        self.assertRaises(ValueError, lambda: h.subs(x,a))
-        self.assertRaises(ValueError, lambda: h.subs(x,y))
+        assert h.subs(x,a) == FE((x,y,z),a**2*y*z+b)
+        assert h.subs(x,y) == FE((x,y,z),a*y**2*z+b)
+
